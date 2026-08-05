@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoltPro - Electrical Materials Catalog & Management System</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="materials.css">
+</head>
+<body class="bg-slate-100 text-slate-900 font-sans min-h-screen flex flex-col justify-between">
+
+  <!-- TOP HEADER / NAVBAR -->
+  <header class="bg-slate-950 text-white sticky top-0 z-40 border-b border-slate-800 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="materials.html" class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-ambebg-amber-bg-amber-r-500 text-slate-950 font-black flex items-center justify-center text-xl shadow">
+          ⚡
+        </div>
+        <div>
+          <span class="font-black text-xl tracking-tight text-white">VOLT<span class="text-amber-400">PRO</span></span>
+          <span class="hidden sm:inline-block text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded ml-2 font-bold uppercase">Materials Hub</span>
+        </div>
+      </a>
+
+      <!-- Center Nav Links -->
+      <nav class="hidden md:flex items-center gap-6 text-xs font-bold text-slate-300">
+        <button onclick="toggleAdminView(false)" class="hover:text-amber-400 transition-colors">📦 Customer Catalog</button>
+        <button onclick="toggleAdminView(true)" class="hover:text-amber-400 transition-colors flex items-center gap-1">
+          <span>⚡ Admin Dashboard</span>
+        </button>
+      </nav>
+
+      <!-- Right Action Bar -->
+      <div class="flex items-center gap-3">
+        <!-- View Toggle Switch -->
+        <button 
+          onclick="toggleAdminView(document.getElementById('admin-section').classList.contains('hidden'))"
+          class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-xs border border-slate-700 flex items-center gap-1.5"
+        >
+          ⚙️ Mode Switch
+        </button>
+
+        <!-- Quote Basket Trigger -->
+        <button 
+          onclick="openQuoteBasketModal()" 
+          class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-2 shadow transition-transform active:scale-95"
+        >
+          📋 Quote Basket
+          <span id="quote-count-badge" class="bg-slate-950 text-amber-400 px-2 py-0.5 rounded-full text-[10px] hidden">0</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 flex-1 w-full">
+
+    <!-- SECTION 1: CUSTOMER CATALOG VIEW -->
+    <section id="catalog-section" class="space-y-6">
+      
+      <!-- Hero Banner -->
+      <div class="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div class="space-y-2 max-w-2xl">
+          <div class="inline-flex items-center gap-2 text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full uppercase tracking-wider">
+            ✓ 100% Guaranteed Genuine Trade Supplies
+          </div>
+          <h1 class="text-2xl sm:text-4xl font-black tracking-tight">Electrical Materials Depot</h1>
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Browse trade price wires, cables, switches, MCBs, LED lighting & PVC conduits from Polycab, Havells, Schneider, Finolex, Philips & Supreme. Direct site delivery available.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <button onclick="exportMaterialsCSV()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-xs rounded-xl border border-slate-700 shadow">
+            📥 Download Price List (CSV)
+          </button>
+          <button onclick="printPDFReport()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 shadow">
+            🖨️ Print Catalog (PDF)
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Controls Bar -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+        
+        <!-- Live Search -->
+        <div class="relative lg:col-span-1">
+          <input
+            type="text"
+            id="search-input"
+            onkeyup="renderCatalogGrid()"
+            placeholder="Search by name, brand, HSN..."
+            class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 font-medium"
+          >
+        </div>
+
+        <!-- Category Filter -->
+        <select id="filter-category" onchange="renderCatalogGrid()" class="px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white font-semibold text-slate-700">
+          <option value="all">📁 All Categories</option>
+        </select>
+
+        <!-- Brand Filter -->
+        <select id="filter-brand" onchange="renderCatalogGrid()" class="px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white font-semibold text-slate-700">
+          <option value="all">🏭 All Brands</option>
+        </select>
+
+        <!-- Stock Status Filter -->
+        <select id="filter-stock" onchange="renderCatalogGrid()" class="px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white font-semibold text-slate-700">
+          <option value="all">📊 All Stock Statuses</option>
+          <option value="in stock">In Stock Only</option>
+          <option value="low stock">Low Stock Alert</option>
+          <option value="out of stock">Out of Stock</option>
+        </select>
+
+        <!-- Sorting Option -->
+        <select id="sort-option" onchange="renderCatalogGrid()" class="px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white font-semibold text-slate-700">
+          <option value="newest">Sort By: Featured</option>
+          <option value="price-low">Price: Low to High</option>
+          <option value="price-high">Price: High to Low</option>
+          <option value="discount-high">Highest Discount</option>
+          <option value="name-az">Name: A to Z</option>
+        </select>
+
+      </div>
+
+      <!-- Product Cards Grid -->
+      <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <!-- Dynamically rendered via materials.js -->
+      </div>
+
+    </section>
+
+    <!-- SECTION 2: ADMIN MANAGEMENT DASHBOARD VIEW -->
+    <section id="admin-section" class="space-y-6 hidden">
+      
+      <!-- Admin Top Banner -->
+      <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div class="inline-flex items-center gap-2 text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full uppercase tracking-wider mb-2">
+            🛡️ Full Inventory Administration
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-black">Electrical Materials Control Panel</h2>
+          <p class="text-xs text-slate-400 mt-1">
+            Manage product specs, pricing, stock levels, categories, brands, price adjustments, and CSV/PDF reports
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="addCategoryPrompt()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-xs border border-slate-700 shadow">
+            + Add Category
+          </button>
+
+          <button onclick="addBrandPrompt()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-xs border border-slate-700 shadow">
+            + Add Brand
+          </button>
+
+          <button onclick="openAddMaterialModal()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg transition-transform active:scale-95">
+            + Add Material
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Overview -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Products</span>
+          <div id="stat-total-items" class="text-2xl font-black text-slate-900">0</div>
+          <span class="text-[10px] text-emerald-600 font-bold block">Active in catalog</span>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Stock Valuation</span>
+          <div id="stat-valuation" class="text-2xl font-black text-amber-600">₹0</div>
+          <span class="text-[10px] text-slate-500 block">At current selling prices</span>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Low Stock Alerts</span>
+          <div id="stat-low-stock" class="text-2xl font-black text-amber-600">0</div>
+          <span class="text-[10px] text-slate-500 block">Below threshold limit</span>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <span class="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Out of Stock</span>
+          <div id="stat-out-stock" class="text-2xl font-black text-rose-600">0</div>
+          <span class="text-[10px] text-slate-500 block">Requires replenishment</span>
+        </div>
+      </div>
+
+      <!-- Admin Toolbar & Bulk Options -->
+      <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+        
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
+          <div class="w-full sm:w-80">
+            <input
+              type="text"
+              id="admin-search-input"
+              onkeyup="renderAdminTable()"
+              placeholder="Filter inventory table..."
+              class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-amber-500"
+            >
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
+            <label class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 cursor-pointer flex items-center gap-1">
+              📤 Import CSV/Excel
+              <input type="file" accept=".csv" onchange="handleCSVImport(event)" class="hidden">
+            </label>
+
+            <button onclick="exportMaterialsCSV()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200">
+              📥 Export CSV
+            </button>
+
+            <button onclick="printPDFReport()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200">
+              🖨️ Export PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Bulk Action Trigger Banner -->
+        <div id="bulk-action-bar" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between text-xs font-bold text-amber-900">
+          <span>⚡ <span id="bulk-selected-count">0</span> items selected</span>
+          <div class="flex items-center gap-2">
+            <button onclick="bulkUpdatePrices()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl shadow">
+              Bulk Price Adjustment (%)
+            </button>
+            <button onclick="bulkDeleteMaterials()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl shadow">
+              Bulk Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- Inventory Data Table -->
+        <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200">
+              <tr>
+                <th class="p-3 w-10 text-center">
+                  <input type="checkbox" onchange="toggleSelectAllMaterials(event)" class="rounded text-amber-500 w-4 h-4">
+                </th>
+                <th class="p-3">Material Name & Spec</th>
+                <th class="p-3">Category</th>
+                <th class="p-3">Brand</th>
+                <th class="p-3 text-right">Selling / MRP</th>
+                <th class="p-3 text-center">Stock</th>
+                <th class="p-3 text-center">Status</th>
+                <th class="p-3 text-center">Active</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-table-body" class="divide-y divide-slate-100 font-medium text-slate-700">
+              <!-- Dynamically populated via materials.js -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- MODAL 1: ADD / EDIT MATERIAL MODAL -->
+  <div id="material-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl modal-content max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <h3 id="form-title" class="text-xl font-black text-slate-900">⚡ Add New Electrical Material</h3>
+        <button onclick="closeMaterialModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+      </div>
+
+      <form id="material-form" onsubmit="handleMaterialFormSubmit(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="form-material-id">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <div class="sm:col-span-2">
+            <label class="font-bold text-slate-700 block mb-1">Product Name *</label>
+            <input type="text" id="form-name" required placeholder="e.g. 1.5 sq mm FR Copper Wire 90m" class="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 font-semibold">
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Category *</label>
+            <select id="form-category" required class="w-full p-2.5 border border-slate-200 rounded-xl bg-white font-semibold"></select>
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Brand *</label>
+            <select id="form-brand" required class="w-full p-2.5 border border-slate-200 rounded-xl bg-white font-semibold"></select>
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Model / Sub-range</label>
+            <input type="text" id="form-model" placeholder="e.g. Optima FR / Fabio" class="w-full p-2.5 border border-slate-200 rounded-xl">
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">HSN Code</label>
+            <input type="text" id="form-hsn" placeholder="e.g. 8544 / 8536" class="w-full p-2.5 border border-slate-200 rounded-xl">
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Unit *</label>
+            <select id="form-unit" required class="w-full p-2.5 border border-slate-200 rounded-xl bg-white font-semibold">
+              <option value="Coil">Coil</option>
+              <option value="Piece">Piece</option>
+              <option value="Meter">Meter</option>
+              <option value="Box">Box</option>
+              <option value="Length">Length</option>
+              <option value="Set">Set</option>
+              <option value="Roll">Roll</option>
+              <option value="Packet">Packet</option>
+              <option value="Bundle">Bundle</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Purchase Price (₹)</label>
+            <input type="number" step="0.01" id="form-cost" placeholder="0.00" class="w-full p-2.5 border border-slate-200 rounded-xl">
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">MRP Price (₹) *</label>
+            <input type="number" step="0.01" id="form-mrp" required placeholder="0.00" class="w-full p-2.5 border border-slate-200 rounded-xl font-bold">
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Selling Price (₹) *</label>
+            <input type="number" step="0.01" id="form-price" required placeholder="0.00" class="w-full p-2.5 border border-slate-200 rounded-xl font-bold text-amber-600">
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">GST Tax %</label>
+            <select id="form-gst" class="w-full p-2.5 border border-slate-200 rounded-xl bg-white">
+              <option value="18">18% Standard</option>
+              <option value="12">12% Reduced</option>
+              <option value="28">28% High GST</option>
+              <option value="5">5% Minimal</option>
+              <option value="0">0% Exempt</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Initial Stock Quantity *</label>
+            <input type="number" id="form-stock" required placeholder="0" class="w-full p-2.5 border border-slate-200 rounded-xl font-bold">
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Min Stock Alert Threshold</label>
+            <input type="number" id="form-threshold" placeholder="5" class="w-full p-2.5 border border-slate-200 rounded-xl">
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Barcode / SKU Code</label>
+            <input type="text" id="form-barcode" placeholder="e.g. 8901234567" class="w-full p-2.5 border border-slate-200 rounded-xl">
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Warranty Period</label>
+            <input type="text" id="form-warranty" placeholder="e.g. 1 Year / 10 Years Guarantee" class="w-full p-2.5 border border-slate-200 rounded-xl">
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="font-bold text-slate-700 block mb-1">Description / Spec Notes</label>
+            <textarea id="form-description" rows="2" placeholder="Enter key features, material grade, specs..." class="w-full p-2.5 border border-slate-200 rounded-xl"></textarea>
+          </div>
+
+          <div class="sm:col-span-2 space-y-2">
+            <label class="font-bold text-slate-700 block">Product Image Upload</label>
+            <div class="flex items-center gap-4">
+              <img id="image-preview" src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=600" class="w-16 h-16 rounded-xl object-cover border border-slate-200">
+              <div class="flex-1 space-y-1">
+                <input type="text" id="form-image-url" placeholder="Paste Image URL or choose file below..." class="w-full p-2 border border-slate-200 rounded-lg">
+                <input type="file" accept="image/*" onchange="handleImageFileUpload(event)" class="text-xs text-slate-500">
+              </div>
+            </div>
+          </div>
+
+          <div class="sm:col-span-2 flex items-center gap-2 pt-2">
+            <input type="checkbox" id="form-isi" class="w-4 h-4 text-amber-500 rounded">
+            <label for="form-isi" class="font-bold text-slate-800">Display "✓ 100% Original ISI Mark" badge on product card</label>
+          </div>
+
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeMaterialModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl">
+            Cancel
+          </button>
+          <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl shadow">
+            Save Material
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: QUOTE BASKET MODAL -->
+  <div id="quote-basket-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl modal-content">
+      
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-lg font-black text-slate-900">📋 Customer Quote Basket (BOQ)</h3>
+        <button onclick="closeQuoteBasketModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+      </div>
+
+      <!-- Item List Container -->
+      <div id="quote-basket-items" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+        <!-- Dynamically rendered via materials.js -->
+      </div>
+
+      <div class="flex justify-between items-center font-black text-sm text-slate-900 pt-2 border-t border-slate-100">
+        <span>Estimated Total:</span>
+        <span id="quote-basket-total" class="text-amber-600 text-base">₹0</span>
+      </div>
+
+      <form onsubmit="submitQuoteRequest(event)" class="space-y-3 pt-2 text-xs">
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Your Name / Site Name *</label>
+          <input type="text" id="quote-cust-name" required placeholder="e.g. Rajesh Kumar (Villa Site)" class="w-full p-2.5 border border-slate-200 rounded-xl">
+        </div>
+
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Phone Number (WhatsApp) *</label>
+          <input type="tel" id="quote-cust-phone" required placeholder="e.g. +91 9876543210" class="w-full p-2.5 border border-slate-200 rounded-xl">
+        </div>
+
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Site Delivery Location</label>
+          <input type="text" id="quote-cust-site" placeholder="e.g. Sector 45, Phase 2" class="w-full p-2.5 border border-slate-200 rounded-xl">
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeQuoteBasketModal()" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl">
+            Close
+          </button>
+          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl shadow">
+            Submit Quote & WhatsApp
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-950 text-slate-400 border-t border-slate-800 py-6 text-center text-xs">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <span>© 2026 VoltPro Electrical Materials Management System. All rights reserved.</span>
+      <span class="text-amber-400 font-bold">100% Standalone Module • Firebase / LocalStorage Ready</span>
+    </div>
+  </footer>
+
+  <!-- SCRIPTS -->
+  <script src="config.js"></script>
+  <script src="materials.js"></script>
+
+</body>
+          </html>
